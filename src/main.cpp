@@ -72,37 +72,38 @@ void loop() {
             clearBoard();
         }
     } else {
-        if (arduboy.justPressed(LEFT_BUTTON)) {
+        if (arduboy.pressed(LEFT_BUTTON)) {
             if (cursorX > 0) {
-                cursorX--;
+                cursorX -= 2;
             }
         }
-        if (arduboy.justPressed(RIGHT_BUTTON)) {
-            if (cursorX <= 30) {
-                cursorX++;
+        if (arduboy.pressed(RIGHT_BUTTON)) {
+            if (cursorX <= 60) {
+                cursorX += 2;
             }
         }
-        if (arduboy.justPressed(UP_BUTTON)) {
+        if (arduboy.pressed(UP_BUTTON)) {
             if (cursorY > 0) {
-                cursorY--;
+                cursorY -= 2;
             }
         }
-        if (arduboy.justPressed(DOWN_BUTTON)) {
-            if (cursorY <= 30) {
-                cursorY++;
+        if (arduboy.pressed(DOWN_BUTTON)) {
+            if (cursorY <= 60) {
+                cursorY += 2;
             }
         }
         if (arduboy.justPressed(A_BUTTON)) {
-            gameBoard[cursorX][cursorY] = !gameBoard[cursorX][cursorY];
+            gameBoard[cursorX / 2][cursorY / 2] =
+                !gameBoard[cursorX / 2][cursorY / 2];
         }
         if (arduboy.justPressed(B_BUTTON)) {
             start = true;
         }
         displayGeneration();
-        arduboy.drawPixel((cursorX + 49), (cursorY + 17) + 1);
-        arduboy.drawPixel((cursorX + 49) - 1, (cursorY + 17));
-        arduboy.drawPixel((cursorX + 49) + 1, (cursorY + 17));
-        arduboy.drawPixel((cursorX + 49), (cursorY + 17) - 1);
+        arduboy.drawRect((cursorX + 34), (cursorY + 2) + 2, 2, 2);
+        arduboy.drawRect((cursorX + 34) - 2, (cursorY + 2), 2, 2);
+        arduboy.drawRect((cursorX + 34) + 2, (cursorY + 2), 2, 2);
+        arduboy.drawRect((cursorX + 34), (cursorY + 2) - 2, 2, 2);
     }
     arduboy.display();
 }
@@ -140,6 +141,9 @@ uint8_t applyRule(uint8_t x, uint8_t y) {
         for (uint8_t j = 0; j < 3; j++) {
             if (i == 1 && j == 1) {
                 continue;
+            }
+            if(x - 1 < 0 || y - 1 < 0 || y + 1 > 30 || x + 1 > 30) {
+              continue;
             }
             neighborCount += gameBoard[(x - 1) + i][(y - 1) + j];
         }
@@ -183,11 +187,11 @@ void clearBoard() {
 }
 
 void displayGeneration() {
-    arduboy.drawRect(48, 16, 32, 32);
+    arduboy.drawRect(32, 0, 64, 64);
 
-    for (uint8_t i = 0; i < 30; i++) {
-        for (uint8_t j = 0; j < 30; j++) {
-            arduboy.drawPixel(i + 49, j + 17, gameBoard[i][j]);
+    for (uint8_t i = 0; i < 60; i += 2) {
+        for (uint8_t j = 0; j < 60; j += 2) {
+            arduboy.drawRect(i + 34, j + 2, 2, 2, gameBoard[i / 2][j / 2]);
         }
     }
 };
