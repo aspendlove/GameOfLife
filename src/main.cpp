@@ -6,8 +6,8 @@ Arduboy2Base arduboy;
 uint8_t gameBoard[30][30]{};
 uint8_t bufferOne[30];
 uint8_t bufferTwo[30];
-uint8_t cursorX;
-uint8_t cursorY;
+uint8_t cursorX = 30;
+uint8_t cursorY = 30;
 uint8_t frameCounter = 0;
 uint8_t holdCounter = 0;
 bool start = false;
@@ -54,6 +54,8 @@ void loop() {
         if (arduboy.justPressed(B_BUTTON)) {
             start = false;
             clearBoard();
+            cursorX = 30;
+            cursorY = 30;
         }
     } else {
         if (arduboy.justPressed(LEFT_BUTTON)) {
