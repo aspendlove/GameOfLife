@@ -8,6 +8,8 @@ uint8_t bufferOne[30];
 uint8_t bufferTwo[30];
 uint8_t cursorX;
 uint8_t cursorY;
+uint8_t frameCounter = 0;
+uint8_t holdCounter = 0;
 bool start = false;
 
 void calculateNextGeneration(uint8_t[30], uint8_t[30][30]);
@@ -30,33 +32,12 @@ void advance();
 
 void setup() {
     arduboy.begin();
-    arduboy.setFrameRate(5);
+    arduboy.setFrameRate(60);
     clearBoard();
-    // gameBoard[0][0] = 0;
-    // gameBoard[0][1] = 0;
-    // gameBoard[1][0] = 1;
-    // gameBoard[1][1] = applyRule(1, 1);
-
-    // gameBoard[1][0] = 1;
-    // gameBoard[0][1] = 1;
-    // gameBoard[2][1] = 1;
-    // gameBoard[1][2] = 1;
-
-    // Serial.begin(9600);
-
-    // gameBoard[3][3] = 1;
-    // gameBoard[3][4] = 1;
-    // gameBoard[3][5] = 1;
-
-    // gameBoard[20][21] = 1;
-    // gameBoard[21][22] = 1;
-    // gameBoard[22][20] = 1;
-    // gameBoard[22][21] = 1;
-    // gameBoard[22][22] = 1;
+    Serial.begin(9600);
 }
 
 void loop() {
-    // put your main code here, to run repeatedly:
     if (!arduboy.nextFrame())
         return;
     arduboy.clear();
@@ -64,7 +45,10 @@ void loop() {
     arduboy.pollButtons();
 
     if (start) {
-        advance();
+        if (++frameCounter == 5) {
+            advance();
+            frameCounter = 0;
+        }
         displayGeneration();
 
         if (arduboy.justPressed(B_BUTTON)) {
@@ -72,25 +56,59 @@ void loop() {
             clearBoard();
         }
     } else {
-        if (arduboy.pressed(LEFT_BUTTON)) {
+        if (arduboy.justPressed(LEFT_BUTTON)) {
             if (cursorX > 0) {
                 cursorX -= 2;
             }
         }
-        if (arduboy.pressed(RIGHT_BUTTON)) {
-            if (cursorX <= 60) {
+        if (arduboy.justPressed(RIGHT_BUTTON)) {
+            if (cursorX < 58) {
                 cursorX += 2;
             }
         }
-        if (arduboy.pressed(UP_BUTTON)) {
+        if (arduboy.justPressed(UP_BUTTON)) {
             if (cursorY > 0) {
                 cursorY -= 2;
             }
         }
-        if (arduboy.pressed(DOWN_BUTTON)) {
-            if (cursorY <= 60) {
+        if (arduboy.justPressed(DOWN_BUTTON)) {
+            if (cursorY < 58) {
                 cursorY += 2;
             }
+        }
+        if (arduboy.pressed(LEFT_BUTTON)) {
+            if (holdCounter++ > 20) {
+                if (cursorX > 0) {
+                    cursorX -= 2;
+                }
+            }
+        }
+        if (arduboy.pressed(RIGHT_BUTTON)) {
+            if (holdCounter++ > 20) {
+                if (cursorX < 58) {
+                    cursorX += 2;
+                }
+            }
+        }
+        if (arduboy.pressed(UP_BUTTON)) {
+            if (holdCounter++ > 20) {
+                if (cursorY > 0) {
+                    cursorY -= 2;
+                }
+            }
+        }
+        if (arduboy.pressed(DOWN_BUTTON)) {
+            if (holdCounter++ > 20) {
+                if (cursorY < 58) {
+                    cursorY += 2;
+                }
+            }
+        }
+        if (arduboy.justReleased(UP_BUTTON) ||
+            arduboy.justReleased(DOWN_BUTTON) ||
+            arduboy.justReleased(LEFT_BUTTON) ||
+            arduboy.justReleased(RIGHT_BUTTON)) {
+            holdCounter = 0;
         }
         if (arduboy.justPressed(A_BUTTON)) {
             gameBoard[cursorX / 2][cursorY / 2] =
@@ -100,10 +118,10 @@ void loop() {
             start = true;
         }
         displayGeneration();
-        arduboy.drawRect((cursorX + 34), (cursorY + 2) + 2, 2, 2);
-        arduboy.drawRect((cursorX + 34) - 2, (cursorY + 2), 2, 2);
-        arduboy.drawRect((cursorX + 34) + 2, (cursorY + 2), 2, 2);
-        arduboy.drawRect((cursorX + 34), (cursorY + 2) - 2, 2, 2);
+        arduboy.drawRect((cursorX + 34), (cursorY + 2) + 2, 2, 1);
+        arduboy.drawRect((cursorX + 34) - 1, (cursorY + 2), 1, 2);
+        arduboy.drawRect((cursorX + 34) + 2, (cursorY + 2), 1, 2);
+        arduboy.drawRect((cursorX + 34), (cursorY + 2) - 1, 2, 1);
     }
     arduboy.display();
 }
@@ -142,10 +160,15 @@ uint8_t applyRule(uint8_t x, uint8_t y) {
             if (i == 1 && j == 1) {
                 continue;
             }
-            if(x - 1 < 0 || y - 1 < 0 || y + 1 > 30 || x + 1 > 30) {
-              continue;
+
+            uint8_t newX = (x - 1) + i;
+            uint8_t newY = (y - 1) + j;
+
+            if (newX < 0 || newY < 0 || newX >= 30 || newY >= 30) {
+                continue;
             }
-            neighborCount += gameBoard[(x - 1) + i][(y - 1) + j];
+
+            neighborCount += gameBoard[newX][newY];
         }
     }
     if (gameBoard[x][y]) {
